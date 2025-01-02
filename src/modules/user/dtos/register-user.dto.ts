@@ -1,4 +1,4 @@
-import { Validators } from "../../shared/validators";
+import { Validators } from "../../../shared/validators";
 
 
 export class RegisterUserDto {

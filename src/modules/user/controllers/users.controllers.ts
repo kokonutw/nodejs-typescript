@@ -1,16 +1,25 @@
 import { Request, Response } from "express";
 import { RegisterUserDto } from "../dtos/register-user.dto";
-import { PrismaClient } from "@prisma/client";
+import { UserService } from "../services/user.service";
+
 
 export class UsersController {
-  public async getUsers(req: Request, res: Response): Promise<void> {
-    const prisma = new PrismaClient();
+  private readonly userService: UserService;
 
-    const users = await prisma.usuario.findMany();
+  constructor(){
+    this.userService = new UserService();
+  }
 
+  getUsers = async (req: Request, res: Response): Promise<void> => {
+    const users = await this.userService.getUsers();
     res.json(users);
   }
 
+  getUserById = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const user = await this.userService.getUserById(Number(id));
+    res.json(user);
+  }
 
   registerUser = (req: Request, res: Response)=>{
     const [error, registerUserDto] = RegisterUserDto.create(req.body);

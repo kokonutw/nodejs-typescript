@@ -1,9 +1,9 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import { UserRouter } from "./user/user.router";
+import { UserRouter } from "./modules/user/user.router";
 import { ConfigServer } from "./config/config";
-import { ProductRouter } from "./products/products.router";
+import { ProductRouter } from "./modules/products/products.router";
 
 class ServerBoostrap extends ConfigServer {
   public app: express.Application = express();

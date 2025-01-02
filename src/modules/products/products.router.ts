@@ -1,4 +1,4 @@
-import { ApplicationRouter } from "../routes/router";
+import { ApplicationRouter } from "../../routes/router";
 import { ProductsController } from "./controllers/products.controllers";
 
 export class ProductRouter extends ApplicationRouter<ProductsController, null> {

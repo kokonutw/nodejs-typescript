@@ -1,3 +1,4 @@
+import { PrismaClient } from "@prisma/client";
 import * as dotenv from "dotenv";
 
 export abstract class ConfigServer {
@@ -36,5 +37,11 @@ export abstract class ConfigServer {
   // este metodo solo utilizo para conseguir los ENVS de mi archivo .env o .production.env
   private getEnvirontmentValue(key: string): string | undefined {
     return process.env[key]; //proccess.env['PORT']
+  }
+
+
+  // Prisma client
+  async prismaClient(): Promise<PrismaClient> {
+    return new PrismaClient();
   }
 }
