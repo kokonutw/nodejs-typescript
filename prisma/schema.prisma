@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model category {
+  id                                   Int        @id @default(autoincrement())
+  name_category                        String     @unique(map: "uk_category") @db.VarChar(50)
+  products_products_categoryTocategory products[] @relation("products_categoryTocategory")
+}
+
+model contacto {
+  id                                               Int          @id @default(autoincrement())
+  firstname                                        String       @db.VarChar(20)
+  lastname                                         String       @db.VarChar(40)
+  correo                                           String       @unique(map: "cliente_correo_key") @db.VarChar(120)
+  telefono                                         String       @unique(map: "uk_telefono_cliente") @db.VarChar(15)
+  supabase_user_id                                 String       @db.Uuid
+  created_at                                       DateTime     @default(now()) @db.Timestamp(6)
+  updated_at                                       DateTime     @default(now()) @db.Timestamp(6)
+  role                                             String?      @default("usuario") @db.VarChar(10)
+  departamento                                     Int
+  estado                                           String?      @default("activo") @db.VarChar(20)
+  departamento_contacto_departamentoTodepartamento departamento @relation("contacto_departamentoTodepartamento", fields: [departamento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_departamento")
+  usuario                                          usuario[]
+}
+
+model delivery {
+  id              Int       @id @default(autoincrement())
+  firstname       String    @db.VarChar(20)
+  lastname        String    @db.VarChar(40)
+  correo          String    @unique @db.VarChar(120)
+  password_hash   String    @db.VarChar(120)
+  telefono        String?   @db.VarChar(15)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+  latitud         Float?
+  longitud        Float?
+  estado_delivery Boolean?  @default(false)
+  pedido          pedido[]
+}
+
+model departamento {
+  id                                           Int        @id @default(autoincrement())
+  nombre                                       String     @db.VarChar(30)
+  contacto_contacto_departamentoTodepartamento contacto[] @relation("contacto_departamentoTodepartamento")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model detalle_pedido {
+  id          Int       @id @default(autoincrement())
+  pedido_id   Int
+  product_id  Int
+  quantity    Int
+  unit_price  Decimal   @db.Decimal(10, 2)
+  descuento   Decimal?  @default(0) @db.Decimal(10, 2)
+  total       Decimal   @db.Decimal(10, 2)
+  description String
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  pedido      pedido    @relation(fields: [pedido_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products    products  @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model estado_pedido {
+  id               Int                @id @default(autoincrement())
+  nombre           String             @db.VarChar(15)
+  descripcion      String?
+  historial_pedido historial_pedido[]
+}
+
+model historial_pedido {
+  id            Int           @id @default(autoincrement())
+  pedido_id     Int
+  estado        Int
+  created_at    DateTime?     @default(now()) @db.Timestamp(6)
+  estado_pedido estado_pedido @relation(fields: [estado], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_estado_pedido")
+  pedido        pedido        @relation(fields: [pedido_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model informacion_pago {
+  id                     Int       @id @default(autoincrement())
+  pedido_id              Int
+  estado_pago            String    @default("pendiente") @db.VarChar(20)
+  referencia_transaccion String?   @db.VarChar(50)
+  fecha_pago             DateTime? @default(now()) @db.Timestamp(6)
+  created_at             DateTime? @default(now()) @db.Timestamp(6)
+  updated_at             DateTime? @default(now()) @db.Timestamp(6)
+  pedido                 pedido    @relation(fields: [pedido_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model metodo_pago {
+  id                                     Int      @id @default(autoincrement())
+  metodo_pago                            String   @db.VarChar(50)
+  pedido_pedido_metodo_pagoTometodo_pago pedido[] @relation("pedido_metodo_pagoTometodo_pago")
+}
+
+model pedido {
+  id                                          Int                @id @default(autoincrement())
+  delivery_id                                 Int?
+  fecha_pedido                                DateTime?          @default(now()) @db.Timestamp(6)
+  descripcion                                 String             @default("pendiente") @db.VarChar(20)
+  usuario_id                                  Int
+  monto_total                                 Decimal            @db.Decimal(10, 2)
+  cantidad_total                              Int
+  metodo_pago                                 Int
+  detalle_pedido                              detalle_pedido[]
+  historial_pedido                            historial_pedido[]
+  informacion_pago                            informacion_pago[]
+  metodo_pago_pedido_metodo_pagoTometodo_pago metodo_pago        @relation("pedido_metodo_pagoTometodo_pago", fields: [metodo_pago], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_metodopago_pedido")
+  usuario                                     usuario            @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_pedido")
+  delivery                                    delivery?          @relation(fields: [delivery_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model products {
+  id                                   Int              @id(map: "product_pkey") @default(autoincrement())
+  titulo                               String           @unique(map: "uk_titulo") @db.VarChar(60)
+  descripcion                          String           @default("Not description")
+  category                             Int
+  price                                Decimal          @db.Decimal(10, 2)
+  image_url                            String           @default("https://gfostone.com/images/products/product-not-found.jpg")
+  ingredientes                         String           @default("chaufita")
+  stock                                Int?             @default(100)
+  detalle_pedido                       detalle_pedido[]
+  category_products_categoryTocategory category         @relation("products_categoryTocategory", fields: [category], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "product_category_fkey")
+}
+
+model size_product {
+  size_product     String  @id @db.VarChar(2)
+  descripcion      String  @db.VarChar(12)
+  multiplier_price Decimal @default(1.0) @db.Decimal(5, 2)
+}
+
+model usuario {
+  id          Int      @id(map: "cliente_pkey") @default(autoincrement())
+  direccion   String?
+  profile_url String?  @default("https://64.media.tumblr.com/d47591232e6942563b48bd17675d82bc/8a5aab9cdf541eee-c6/s400x600/b83a86bfc94f0fc3c44a7a1c582e3b668d128599.png")
+  id_contacto Int
+  pedido      pedido[]
+  contacto    contacto @relation(fields: [id_contacto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fK_cliente_contacto")
+}
